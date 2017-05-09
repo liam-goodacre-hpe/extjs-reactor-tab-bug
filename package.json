@@ -6,7 +6,7 @@
     "build": "npm run clean && NODE_ENV=production webpack --env.prod=true --progress --colors",
     "clean": "rimraf build",
     "prod": "NODE_ENV=production webpack-dev-server --env.prod=true --progress --colors",
-    "start": "webpack-dev-server --progress --colors"
+    "start": "webpack-dev-server --progress --colors --port 8889"
   },
   "author": "unional",
   "private": true,

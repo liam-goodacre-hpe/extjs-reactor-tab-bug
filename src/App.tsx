@@ -2,87 +2,56 @@ import * as React from 'react';
 import { Component } from 'react';
 import { reactify } from '@extjs/reactor';
 
-import data = require('./data')
-import Employee from './Employee';
+const Panel = reactify('panel') as any
+const TabPanel = reactify('tabpanel') as any
 
-const Grid = reactify('grid') as any;
-const Panel = reactify('panel') as any;
-const Container = reactify('container') as any;
-const SearchField = reactify('searchfield') as any;
+type Item = { id: number, text: string }
+type State = { focus: number, items: Array<Item> }
 
-Ext.require('Ext.plugin.Responsive');
-Ext.require('Ext.grid.plugin.ColumnResizing');
+export default class App extends Component<any, State> {
+    constructor(p, c) {
+        super(p, c)
+        this.state = {
+            focus: 3,
+            items: [
+                {id: 0, text: 'example'},
+                {id: 1, text: 'example'},
+                {id: 2, text: 'example'},
+                {id: 3, text: 'example'}
+            ]
+        }
+    }
 
-export interface AppState {
-  employee: any
+    switchFocus(nextPanel) {
+        this.setState({focus: nextPanel ? nextPanel.config.itemId : null})
+    }
+
+    closeItem(id) {
+        this.setState(state => ({items: state.items.filter(item => item.id !== id)}))
+    }
+
+    render() {
+        return (
+            <Panel>
+                <TabPanel activeTab={this.state.focus}
+                          onBeforeTabChange={(tabPanel, nextPanel) => this.switchFocus(nextPanel)}>
+                    {this.state.items.map(item => (
+                        <Panel key={item.id}
+                               title={item.text}
+                               itemId={item.id}
+                               closable={true}
+                               layout="fit"
+                               onBeforeClose={() => {
+                                   this.closeItem(item.id)
+                                   return false
+                               }}>
+                            <Panel>{item.text}</Panel>
+                            <Panel>{item.text}</Panel>
+                        </Panel>
+                    ))}
+                </TabPanel>
+            </Panel>
+        )
+    }
 }
 
-/**
- * The main application view
- */
-export default class App extends Component<any, AppState> {
-  store: Ext.data.Store & any
-  constructor(props) {
-    super(props);
-    this.state = { employee: null };
-    this.store = {}
-    this.store = Ext.create('Ext.data.Store', {
-      fields: ['name', 'email', 'phone', 'hoursTaken', 'hoursRemaining'],
-      data
-    });
-  }
-
-  /**
-   * Filter the store when the user types in the search box
-   */
-  onSearch() {
-    let x: React.ReactInstance;
-
-    const query = (this.refs as any).query.getValue();
-    this.store.clearFilter();
-
-    if (query.length) this.store.filterBy(record => {
-      const { name, email, phone } = record.data;
-      return name.indexOf(query) !== -1 || email.indexOf(query) !== -1 || phone.indexOf(query) !== -1;
-    });
-  }
-
-  /**
-   * Update the component state based on the user's selection in the grid
-   */
-  onPersonSelect(grid, record) {
-    this.setState({ employee: record.data });
-  }
-
-  render() {
-    const { employee } = this.state;
-
-    return (
-      <Container
-        plugins="responsive"
-        responsiveConfig={{
-          tall: { layout: 'vbox' },
-          wide: { layout: 'hbox' }
-        }}
-        >
-        <Panel title="Employees" layout="fit" flex={1} margin="20" shadow={true}>
-          <Grid
-            plugins={['columnresizing']}
-            onSelect={this.onPersonSelect.bind(this)}
-            store={this.store}
-            columns={[
-              { text: 'Name', dataIndex: 'name', flex: 2, resizable: true },
-              { text: 'Email', dataIndex: 'email', flex: 3, resizable: true, plugins: 'responsive', responsiveConfig: { tall: { hidden: true } } },
-              { text: 'Phone', dataIndex: 'phone', flex: 2, resizable: true }
-            ]}
-            >
-            <Container layout="hbox" docked="top" padding={5}>
-              <SearchField ref="query" placeHolder="Search..." flex={1} onChange={this.onSearch.bind(this)} />
-            </Container>
-          </Grid>
-        </Panel>
-        {employee && <Employee employee={employee} onCloseClick={() => this.setState({ employee: null })} />}
-      </Container>
-    )
-  }
-}
