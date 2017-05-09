@@ -6,13 +6,13 @@ const Panel = reactify('panel') as any
 const TabPanel = reactify('tabpanel') as any
 
 type Item = { id: number, text: string }
-type State = { focus: number, items: Array<Item> }
+type State = { focus: string | null, items: Array<Item> }
 
 export default class App extends Component<any, State> {
     constructor(p, c) {
         super(p, c)
         this.state = {
-            focus: 3,
+            focus: 'tab3',
             items: [
                 {id: 0, text: 'example'},
                 {id: 1, text: 'example'},
@@ -23,7 +23,7 @@ export default class App extends Component<any, State> {
     }
 
     switchFocus(nextPanel) {
-        this.setState({focus: nextPanel ? nextPanel.config.itemId : null})
+        this.setState({focus: nextPanel ? `tab${nextPanel.config.itemId}` : null})
     }
 
     closeItem(id) {
@@ -38,13 +38,14 @@ export default class App extends Component<any, State> {
                     {this.state.items.map(item => (
                         <Panel key={item.id}
                                title={item.text}
-                               itemId={item.id}
+                               itemId={`tab${item.id}`}
                                closable={true}
                                layout="fit"
                                onBeforeClose={() => {
                                    this.closeItem(item.id)
                                    return false
-                               }}>
+                               }}
+                        >
                             <Panel>{item.text}</Panel>
                             <Panel>{item.text}</Panel>
                         </Panel>
